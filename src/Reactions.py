@@ -241,9 +241,9 @@ class FalloffReaction():
         Kb = 0.
         b = 1.
         if self.has_backward:
-            Kb = self.CompBackwardRateCoeff(self, Kf, P, T, G)
+            Kb = self.CompBackwardRateCoeff(Kf, P, T, G)
             for i in range(self.Npducts):
-                b *= C[self.Npducts[i].ind]**self.pducts[i].nu
+                b *= C[self.pducts[i].ind]**self.pducts[i].nu
 
         return Kf*a - Kb*b
     
