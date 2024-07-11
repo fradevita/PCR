@@ -113,6 +113,20 @@ class Mixture:
             mu += Xi[i]*muk[i]/den
         return mu
     
+    def GetDiffusion(self, T: float, P: float, MixW: float, X: np.ndarray):
+        D = np.zeros(self.nSpec)
+        Y = self.GetMassFractions(MixW, X)
+        for i in range(self.nSpec):
+            num = 1. - Y[i]
+            den = 0.
+            for j in range(self.nSpec):
+                if (j != i):
+                    Dij = Species.GetBinaryDiffusivity(self.Species[i], self.Species[j], P, T)
+                    den += X[j]/Dij
+            D[i] = num/den
+        return D
+
+    
     def GetTFromInternalEnergy(self, e0: float, T: float, Yi: np.ndarray):
         MAXITS = 1000
         TOL = 1e-8

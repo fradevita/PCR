@@ -104,7 +104,8 @@ for n in range(4000000):
 
     rhoi, P, T, Yi = advance(rhoi, P, T, Yi, Mix, dt)
     time.append(dt*(n+1))
-    print(time[n], P, T, rho)
+    print(f't: {time[n]:16.8e}, P: {P:16.8e}, T: {T:16.8e}, rho: {rho:16.8e}')
+    
     Xi = Mix.GetMolarFractions(Yi)
     H2t.append(Xi[Mix.Species_index['H2']])
     O2t.append(Xi[Mix.Species_index['O2']])

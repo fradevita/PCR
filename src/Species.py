@@ -3,11 +3,12 @@ import numpy as np
 import math
 
 # CONSTANTS
-RGAS = 8.3144598     # [J/(mol K)]
-ATom = 1e-10         # Angstrom to meter
-DToCm = 3.33564e-30  # Debye to Coulomb meter
-Na = 6.02214086e23   # [1/mol]
-kb = 1.38064852e-23  # [m^2 kg /( s^2 K)]
+RGAS = 8.3144598          # [J/(mol K)]
+ATom = 1e-10              # Angstrom to meter
+DToCm = 3.33564e-30       # Debye to Coulomb meter
+Na = 6.02214086e23        # [1/mol]
+kb = 1.38064852e-23       # [m^2 kg /( s^2 K)]
+eps_0 =  8.8541878128e-12 # [F/m] or [C/(V m)]
 
 def omega_mu(T: float):
     '''omega_mu(T):
@@ -27,6 +28,20 @@ def omega_mu(T: float):
     den = m5 + T*(m6 + T*(m7 + T*(m8 + T*m9)))
     return num / den
 
+def omega_D(T: float):
+   m1 = 6.8728271691
+   m2 = 9.4122316321
+   m3 = 7.7442359037
+   m4 = 0.23424661229
+   m5 = 1.45337701568
+   m6 = 5.2269794238
+   m7 = 9.7108519575
+   m8 = 0.46539437353
+   m9 = 0.00041908394781
+
+   num = m1 + T * (m2 + T * (m3 + T * m4))
+   den = m5 + T * (m6 + T * (m7 + T * (m8 + T * m9)))
+   return num / den
 class cpCoefficients(NamedTuple):
     TSwitch1: float     # Switch  temperature between Low and Mid  temperature polynomials
     TSwitch2: float     # Switch  temperature between Mid and High temperature polynomials
@@ -88,3 +103,36 @@ class Spec():
         return G - 0.5*T*( cpC[3]   + T*
                     ( cpC[4]/3 + T*
                     ( cpC[5]/6 + 0.1*T*cpC[6] )))
+
+def GetDiffCollParam_Stock(Si: Spec, Sj: Spec, T: float):
+
+    xi = 1.
+    if ((Si.DiffCoeff.mu*Sj.DiffCoeff.mu == 0.0) and \
+        (Si.DiffCoeff.mu + Sj.DiffCoeff.sigma == 0)):
+        
+        if Si.DiffCoeff.mu != 0.:
+            # Si is the polar molecule and Sj is non-polar
+            mup = Si.DiffCoeff.mu/math.sqrt(4.*math.pi*eps_0*kb*Si.DiffCoeff.sigma**3/Si.DiffCoeff.kbOveps)
+            alp = Sj.DiffCoeff.alpha/Sj.DiffCoeff.sigma**3
+            epr = math.sqrt(Sj.DiffCoeff.kbOveps/Si.DiffCoeff.kbOveps)
+        else:
+            # Si is the non-polar molecule and Sj is polar
+            mup = Sj.DiffCoeff.mu/math.sqrt(4.*math.pi*eps_0*kb*Sj.DiffCoeff.sigma**3/Sj.DiffCoeff.kbOveps)
+            alp = Si.DiffCoeff.alpha/Si.DiffCoeff.sigma**3
+            epr = math.sqrt(Si.DiffCoeff.kbOveps/Sj.DiffCoeff.kbOveps)
+        xi = 1. + 0.25*mup*alp*epr
+
+    # Binary cross-section
+    sigmaij = 0.5*(Si.DiffCoeff.sigma + Sj.DiffCoeff.sigma)*xi**(-1./6.)
+    
+    # Collision integral
+    kboEpsij = math.sqrt(Si.DiffCoeff.kbOveps * Sj.DiffCoeff.kbOveps)/(xi*xi)
+    Omega11ij = omega_D(T * kboEpsij)
+    return sigmaij, Omega11ij
+
+def GetBinaryDiffusivity(Si: Spec, Sj: Spec, P: float, T: float):
+    Mij = Si.W*Sj.W/(Si.W + Sj.W)
+    num = 3.*math.sqrt(2.*math.pi*Na*(kb*T)**3/Mij)
+    sigmaij, Omegaij = GetDiffCollParam_Stock(Si, Sj, T)
+    den = 16.*P*math.pi*sigmaij**2*Omegaij
+    return num/den 

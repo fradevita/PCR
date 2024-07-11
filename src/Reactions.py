@@ -39,9 +39,9 @@ class ArrheniusCoefficients():
         if abs(self.EovR) > 1e-5: Kf *= math.exp(-self.EovR/T)
         return Kf
 
-#########################################################################################
+####################################################################################################
 # Standard Reaction
-#########################################################################################
+####################################################################################################
 class Reaction():
     def __init__(self, name : str, ArrCoeff: ArrheniusCoefficients, has_backward: bool, \
                  Neducts:int, Npducts: int, educts: Reactant, pducts: Product):
@@ -62,7 +62,7 @@ class Reaction():
         for i in range(self.Npducts):
             sumNu += self.pducts[i].nu
             sumNuG += self.pducts[i].nu*G[self.pducts[i].ind]
-        lnKc = - sumNuG - sumNu * ( math.log(T) + math.log(Species.RGAS/P) )   
+        lnKc = - sumNuG - sumNu * ( math.log(T) + math.log(Species.RGAS/101325.0) )
         return Kf * math.exp(-lnKc)
 
     def GetReactionRate(self, P: float, T: float, C: np.ndarray, G: np.ndarray):
@@ -117,7 +117,7 @@ class ThirdbodyReaction():
         for i in range(self.Npducts):
             sumNu += self.pducts[i].nu
             sumNuG += self.pducts[i].nu*G[self.pducts[i].ind]
-        lnKc = - sumNuG - sumNu * ( math.log(T) + math.log(Species.RGAS/P) )   
+        lnKc = - sumNuG - sumNu * ( math.log(T) + math.log(Species.RGAS/101325.0) )   
         return Kf * math.exp(-lnKc)
 
     def GetReactionRate(self, P: float, T: float, C: np.ndarray, G: np.ndarray):

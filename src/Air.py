@@ -32,7 +32,7 @@ DiffCoeff = Species.DiffCoefficients(sigma, kbOveps, mu, alpha, Z298)
 N2 = Species.Spec(Name, W, iN2, Geom, cpCoeff, DiffCoeff)
 
 # Clean for safety
-del Name, W, Geom, TSwitch1, TSwitch2, Tmin, Tmax, cpH, cpM, cpL, cpCoeff, sigma, \
+del Name, W, Geom, TSwitch1, TSwitch2, Tmin, TMax, cpH, cpM, cpL, cpCoeff, sigma, \
     kbOveps, mu, alpha, Z298, DiffCoeff
 
 # O2
@@ -60,10 +60,10 @@ mu = 0.000*Species.DToCm
 alpha   = 1.600*Species.ATom
 Z298    = 3.800
 DiffCoeff = Species.DiffCoefficients(sigma, kbOveps, mu, alpha, Z298)
-O2 = Species.Spec(name, W, iO2, Geom, cpCoeff, DiffCoeff)
+O2 = Species.Spec(Name, W, iO2, Geom, cpCoeff, DiffCoeff)
 
 # Clean for safety
-del Name, W, Geom, TSwitch1, TSwitch2, Tmin, Tmax, cpH, cpM, cpL, cpCoeff, sigma, \
+del Name, W, Geom, TSwitch1, TSwitch2, Tmin, TMax, cpH, cpM, cpL, cpCoeff, sigma, \
     kbOveps, mu, alpha, Z298, DiffCoeff
 
 # NO
@@ -91,10 +91,10 @@ mu = 0.000*Species.DToCm
 alpha   = 1.760*Species.ATom
 Z298    = 4.000
 DiffCoeff = Species.DiffCoefficients(sigma, kbOveps, mu, alpha, Z298)
-NO = Species.Spec(name, W, iNO, Geom, cpCoeff, DiffCoeff)
+NO = Species.Spec(Name, W, iNO, Geom, cpCoeff, DiffCoeff)
 
 # Clean for safety
-del Name, W, Geom, TSwitch1, TSwitch2, Tmin, Tmax, cpH, cpM, cpL, cpCoeff, sigma, \
+del Name, W, Geom, TSwitch1, TSwitch2, Tmin, TMax, cpH, cpM, cpL, cpCoeff, sigma, \
     kbOveps, mu, alpha, Z298, DiffCoeff
 
 # N
@@ -122,10 +122,10 @@ mu = 0.000*Species.DToCm
 alpha   = 0.000*Species.ATom
 Z298    = 0.000
 DiffCoeff = Species.DiffCoefficients(sigma, kbOveps, mu, alpha, Z298)
-N = Species.Spec(name, W, iN, Geom, cpCoeff, DiffCoeff)
+N = Species.Spec(Name, W, iN, Geom, cpCoeff, DiffCoeff)
 
 # Clean for safety
-del Name, W, Geom, TSwitch1, TSwitch2, Tmin, Tmax, cpH, cpM, cpL, cpCoeff, sigma, \
+del Name, W, Geom, TSwitch1, TSwitch2, Tmin, TMax, cpH, cpM, cpL, cpCoeff, sigma, \
     kbOveps, mu, alpha, Z298, DiffCoeff
 
 
@@ -154,22 +154,113 @@ mu = 0.000*Species.DToCm
 alpha   = 0.000*Species.ATom
 Z298    = 0.000
 DiffCoeff = Species.DiffCoefficients(sigma, kbOveps, mu, alpha, Z298)
-O = Species.Spec(name, W, iO, Geom, cpCoeff, DiffCoeff)
+O = Species.Spec(Name, W, iO, Geom, cpCoeff, DiffCoeff)
 
 # Clean for safety
-del Name, W, Geom, TSwitch1, TSwitch2, Tmin, Tmax, cpH, cpM, cpL, cpCoeff, sigma, \
+del Name, W, Geom, TSwitch1, TSwitch2, Tmin, TMax, cpH, cpM, cpL, cpCoeff, sigma, \
     kbOveps, mu, alpha, Z298, DiffCoeff
 
 ##########################################################################################
 # Define Air Mixture reactions
 ##########################################################################################
 import Reactions
-# TO DO:...
+
+# R0, Oxygen dissociation: O2 + M => 2O + M
+A = 2.0e+15
+n = -1.5
+EovR = 59500.0
+ArrCoeff = Reactions.ArrheniusCoefficients(A, n, EovR)
+has_backward = True
+Neducts = 1
+Npducts = 1
+Nthirdbd = 5
+educts = (Reactions.Reactant(iO2, 1.0), Reactions.Reactant(0, 1.0))
+pducts = (Reactions.Product(iO, 2.0), Reactions.Product(0, 1.0))
+thirdb = (Reactions.ThirdBd(iO2, 1.0), Reactions.ThirdBd(iNO, 1.0), \
+          Reactions.ThirdBd(iN2, 1.0), Reactions.ThirdBd(iO, 5.0), \
+          Reactions.ThirdBd(iN, 5.0))
+R0 = Reactions.ThirdbodyReaction('R0', ArrCoeff, has_backward, Neducts, Npducts, Nthirdbd, educts, \
+                                 pducts, thirdb)
+# Clean for safety
+del A, n, EovR, ArrCoeff, has_backward, Neducts, Npducts, Nthirdbd, educts, pducts, thirdb
+
+# R1, NO Dissciaton: NO + M => N + O + M
+A = 5.0e+9
+n = 0.0
+EovR = 75500.0
+ArrCoeff = Reactions.ArrheniusCoefficients(A, n, EovR)
+has_backward = True
+Neducts = 1
+Npducts = 2
+Nthirdbd = 5
+educts = (Reactions.Reactant(iNO, 1.0), Reactions.Reactant(0, 1.0))
+pducts = (Reactions.Product(iN, 1.0), Reactions.Product(iO, 1.0))
+thirdb = (Reactions.ThirdBd(iO2, 1.0), Reactions.ThirdBd(iNO, 22.0), \
+          Reactions.ThirdBd(iN2, 1.0), Reactions.ThirdBd(iO, 22.0), \
+          Reactions.ThirdBd(iN, 22.0))
+R1 = Reactions.ThirdbodyReaction('R1', ArrCoeff, has_backward, Neducts, Npducts, Nthirdbd, educts, \
+                                 pducts, thirdb)
+# Clean for safety
+del A, n, EovR, ArrCoeff, has_backward, Neducts, Npducts, Nthirdbd, educts, pducts, thirdb
+
+# R2, N2 dissociation: N2 + M > 2N + M
+A = 7.0e+15
+n = -1.6
+EovR = 113200.0
+ArrCoeff = Reactions.ArrheniusCoefficients(A, n, EovR)
+has_backward = True
+Neducts = 1
+Npducts = 1
+Nthirdbd = 5
+educts = (Reactions.Reactant(iN2, 1.0), Reactions.Reactant(0, 1.0))
+pducts = (Reactions.Product(iN, 2.0), Reactions.Product(iO, 1.0))
+thirdb = (Reactions.ThirdBd(iO2, 1.0), Reactions.ThirdBd(iNO, 1.0), \
+          Reactions.ThirdBd(iN2, 1.0), Reactions.ThirdBd(iO, 30.0/7.0), \
+          Reactions.ThirdBd(iN, 30.0/7.0))
+R2 = Reactions.ThirdbodyReaction('R2', ArrCoeff, has_backward, Neducts, Npducts, Nthirdbd, educts, \
+                                 pducts, thirdb)
+# Clean for safety
+del A, n, EovR, ArrCoeff, has_backward, Neducts, Npducts, Nthirdbd, educts, pducts, thirdb
+
+# R3, Zeldovich 1: N2 + O => NO + N
+A = 6.4e+11
+n = -1.0
+EovR = 38400.0
+ArrCoeff = Reactions.ArrheniusCoefficients(A, n, EovR)
+has_backward = True
+Neducts = 2
+Npducts = 2
+educts = (Reactions.Reactant(iN2, 1.0), Reactions.Reactant(iO, 1.0))
+pducts = (Reactions.Product(iNO, 1.0), Reactions.Product(iN, 1.0))
+R3 = Reactions.Reaction('R3', ArrCoeff, has_backward, Neducts, Npducts, educts, pducts)
+
+# Clean for safety
+del A, n, EovR, ArrCoeff, has_backward, Neducts, Npducts, educts, pducts
+
+# R4, Zeldovich 2: NO + O => O2 + N
+A = 8.4e+6
+n = 0.0
+EovR = 19400.0
+ArrCoeff = Reactions.ArrheniusCoefficients(A, n, EovR)
+has_backward = True
+Neducts = 2
+Npducts = 2
+educts = (Reactions.Reactant(iNO, 1.0), Reactions.Reactant(iO, 1.0))
+pducts = (Reactions.Product(iO2, 1.0), Reactions.Product(iN, 1.0))
+R4 = Reactions.Reaction('R4', ArrCoeff, has_backward, Neducts, Npducts, educts, pducts)
+
+# Clean for safety
+del A, n, EovR, ArrCoeff, has_backward, Neducts, Npducts, educts, pducts
+
+# List of standard reactions
+reacts = (R3, R4)
+# List of third body reactions
+tbreacts = (R0, R1, R2)
 
 ##########################################################################################
 # Function to initialize an Air mixture
 ##########################################################################################
-Species_index = {'N2': iH2, 'O2': iO2, 'NO': iNO, 'N': iN, 'O': iO}
+Species_index = {'N2': iN2, 'O2': iO2, 'NO': iNO, 'N': iN, 'O': iO}
 
-def CreateAirMixture():
-    return Mixture.Mixture(5, (N2, O2, NO, N, O)m Species_index)
+def CreateMixture():
+    return Mixture.Mixture(5, (N2, O2, NO, N, O), Species_index, 2, reacts, 3, tbreacts, 0, ())
