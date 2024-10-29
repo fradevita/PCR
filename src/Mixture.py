@@ -142,7 +142,16 @@ class Mixture:
             j += 1
         assert(j < MAXITS)
         return T
-    
+
+    def GetHeatConductivity(self, T: float, Xi: np.ndarray):
+        a = 0.0
+        b = 0.0
+        for i in range(self.nSpec):
+            lami = self.Species[i].GetLam(T)
+            a += Xi[i]*lami
+            b += Xi[i]/lami
+        return 0.5*(a + 1.0/b)
+ 
     def GetProductionRates(self, rhon, Pn, Tn, Yi):
         # Use unscaled primitive variables
         T = Tn

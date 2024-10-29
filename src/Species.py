@@ -103,6 +103,45 @@ class Spec():
         return G - 0.5*T*( cpC[3]   + T*
                     ( cpC[4]/3 + T*
                     ( cpC[5]/6 + 0.1*T*cpC[6] )))
+    
+
+    def GetSelfDiffusion(self, T):
+        num = 3*np.sqrt(np.pi*kb*T*self.W/Na)
+        den = 8*np.pi*self.DiffCoeff.sigma**2*omega_D(T * self.DiffCoeff.kbOveps)
+        return num/den
+
+    def GetFZrot(self, T):
+        tmp = 1.0/(self.DiffCoeff.kbOveps*T)
+        return 1. + 0.5*np.pi**1.5*np.sqrt(tmp) + (2.0 + 0.25*np.pi**2)*tmp + np.pi**1.5*tmp**1.5  
+
+    def GetLamAtom(self, T):
+        return 15.0/4.0*self.GetMu(T)*RGAS/self.W
+
+    def GetLamLinear(self, T):
+        CvTOvR = 1.5
+        CvROvR = 1.0
+
+        CvT = CvTOvR*RGAS
+        CvR = CvROvR*RGAS
+        CvV = self.GetCp(T)*self.W - 3.5*RGAS
+
+        Dkk = self.GetSelfDiffusion(T)
+        mu = self.GetMu(T)
+
+        fV = Dkk/mu
+
+        Zrot = self.DiffCoeff.Z298*self.GetFZrot(298)/self.GetFZrot(T)
+
+        A = 2.5 - fV
+        B = Zrot + 2/np.pi*(5./3*CvROvR+fV)
+
+        fT = 2.5 * (1. - 2*CvR*A/(np.pi*CvT*B))
+        fR = fV*(1. + 2*A/(np.pi*B))
+
+        return mu/self.W*(fT*CvT + fR*CvR + fV*CvV)
+
+    def GetLam(self, T):
+        return self.GetLamAtom(T) if self.Geom == 0 else (self.GetLamLinear(T) if self.Geom == 1 else self.GetLamNonLinear(T))
 
 def GetDiffCollParam_Stock(Si: Spec, Sj: Spec, T: float):
 
